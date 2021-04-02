@@ -419,12 +419,19 @@ func (dec *dataDecoder) extractDenseNodes() error {
 			index++
 		}
 	}
-	/* copy to an array just large enough */
-	tmp := make([]osm.Node, index)
-	copy(tmp, nodes)
-	for i := range tmp {
-		dec.q = append(dec.q, &tmp[i])
+	if len(nodes) != index {
+		/* copy to an array just large enough */
+		tmp := make([]osm.Node, index)
+		copy(tmp, nodes)
+		for i := range tmp {
+			dec.q = append(dec.q, &tmp[i])
+		}
+	} else {
+		for i := range nodes {
+			dec.q = append(dec.q, &nodes[i])
+		}
 	}
+
 	return nil
 }
 
