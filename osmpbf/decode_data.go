@@ -319,7 +319,6 @@ func (dec *dataDecoder) extractDenseNodes() error {
 	for dec.versions.HasNext() {
 		n := &nodes[index]
 		n.Visible = true
-		index++
 
 		// ID
 		v1, err := dec.ids.Sint64()
@@ -415,8 +414,22 @@ func (dec *dataDecoder) extractDenseNodes() error {
 				n.Tags = append(n.Tags, osm.Tag{Key: st[k], Value: st[v]})
 			}
 		}
-
-		dec.q = append(dec.q, n)
+		if dec.scanner.SkipNodeFunction == nil || !dec.scanner.SkipNodeFunction(*n) {
+			// skip unwanted nodes
+			index++
+		}
+	}
+	if len(nodes) != index {
+		/* copy to an array just large enough */
+		tmp := make([]osm.Node, index)
+		copy(tmp, nodes)
+		for i := range tmp {
+			dec.q = append(dec.q, &tmp[i])
+		}
+	} else {
+		for i := range nodes {
+			dec.q = append(dec.q, &nodes[i])
+		}
 	}
 
 	return nil
